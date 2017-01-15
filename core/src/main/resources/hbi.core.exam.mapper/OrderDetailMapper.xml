@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hbi.core.exam.mapper.OrderDetailMapper" >
+<resultMap id="findAllResultMap" type="hbi.core.exam.dto.OrderDetail">
+    <id column="LINE_ID" property="lineId"></id>
+    <result column="LINE_NUMBER" property="lineNumber"></result>
+    <result column="ITEM_CODE" property="itemCode"></result>
+    <result column="ITEM_DESCRIPTION" property="itemDescription"></result>
+    <result column="ORDER_QUANTITY_UOM" property="orderQuantityUom"></result>
+    <result column="ORDERD_QUANTITY" property="orderQuantity"></result>
+    <result column="UNIT_SELLING_PRICE" property="unitSellingPrice"></result>
+    <result column="orderMoney" property="orderMoney"></result>
+    <result column="DESCRIPTION" property="description"></result>
+    <result column="INVENTORY_ITEM_ID" property="itemId"></result>
+    <result column="ADDITION1" property="addition1"></result>
+    <result column="ADDITION2" property="addition2"></result>
+    <result column="ADDITION3" property="addition3"></result>
+    <result column="ADDITION4" property="addition4"></result>
+    <result column="ADDITION5" property="addition5"></result>
+
+</resultMap>
+    <select id="findAll"  parameterType="hbi.core.exam.dto.Page"  resultMap="findAllResultMap">
+        SELECT
+        l.LINE_ID,
+	l.LINE_NUMBER,
+	i.ITEM_CODE,
+	i.ITEM_DESCRIPTION,
+  l.ORDER_QUANTITY_UOM,
+l.ORDERD_QUANTITY,
+l.UNIT_SELLING_PRICE,
+l.ORDERD_QUANTITY*l.UNIT_SELLING_PRICE orderMoney,
+l.DESCRIPTION,
+i.INVENTORY_ITEM_ID,
+l.ADDITION1,
+l.ADDITION2,
+l.ADDITION3,
+l.ADDITION4,
+l.ADDITION5
+FROM
+	hap_om_order_lines l,
+	hap_inv_inventory_items i
+WHERE
+l.INVENTORY_ITEM_ID=i.INVENTORY_ITEM_ID
+
+ limit #{startPage},#{pageSize}
+    </select>
+
+    <select id="findDetailCount" parameterType="hbi.core.exam.dto.Page" resultType="java.lang.Long">
+          SELECT * FROM
+	hap_om_order_lines l,
+	hap_inv_inventory_items i
+WHERE
+l.INVENTORY_ITEM_ID=i.INVENTORY_ITEM_ID
+
+    </select>
+</mapper>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hbi.core.exam.mapper.HapCustomerMapper" >
+
+    <resultMap id="findCustomerResultMap" type="hbi.core.exam.dto.HapCustomers">
+        <id column="CUSTOMER_ID" property="customerId"></id>
+        <result column="CUSTOMER_NUMBER" property="customerNumber"></result>
+        <result column="CUSTOMER_NAME" property="customerName"></result>
+        <result column="ENABLED_FLAG" property="enabledFlag"></result>
+    </resultMap>
+
+    <select id="findCustomerByCompanyId" parameterType="java.lang.Long" resultMap="findCustomerResultMap">
+        select * from hap_ar_customers
+        <if test="companyId!=null">
+        where company_id=#{companyId}
+        </if>
+
+    </select>
+</mapper>

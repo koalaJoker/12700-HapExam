@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hbi.core.exam.mapper.HapOrderMapper" >
+    <sql id="findSql" >
+        <if test="entity.companyId!=null">
+            and h.COMPANY_ID=#{entity.companyId}
+        </if>
+        <if test="entity.customerName!=null and entity.customerName!=''">
+            and c2.CUSTOMER_NUMBER=#{entity.customerName}
+        </if>
+        <if test="entity.orderNumber!=null and entity.orderNumber!=''">
+            and h.ORDER_NUMBER=#{entity.orderNumber}
+        </if>
+        <if test="entity.itemDescription!=null and entity.itemDescription!=''">
+            and i.ITEM_DESCRIPTION=#{entity.itemDescription}
+        </if>
+        <if test="entity.orderStatus!=null and entity.orderStatus!=''">
+            and h.ORDER_STATUS=#{entity.orderStatus}
+        </if>
+
+    </sql>
+
+    <resultMap id="findAllResultMap" type="hbi.core.exam.dto.HapOrder">
+        <id column="line_id" property="orderId"></id>
+        <id column="order_number" property="orderNumber"></id>
+        <result column="company_name" property="companyName"></result>
+        <result column="customer_name" property="customerName"></result>
+        <result column="order_date" property="orderDate"></result>
+        <result column="order_status" property="orderStatus"></result>
+        <result column="money" property="orderMoney"></result>
+    </resultMap>
+    <select id="findAll"  parameterType="hbi.core.exam.dto.Page" resultMap="findAllResultMap" >
+        SELECT
+        l.LINE_ID,
+        h.ORDER_NUMBER,
+        c1.COMPANY_NAME,
+        c2.CUSTOMER_NAME,
+        h.ORDER_DATE,
+        h.ORDER_STATUS,
+        l.UNIT_SELLING_PRICE*l.ORDERD_QUANTITY money
+        FROM
+        hap_om_order_headers h,
+        hap_org_companys c1,
+        hap_ar_customers c2,
+        hap_om_order_lines l,
+        hap_inv_inventory_items i
+        where
+        l.HEADER_ID=h.HEADER_ID
+        AND
+        h.CUSTOMER_ID=c2.CUSTOMER_ID
+        AND
+        c2.COMPANY_ID=c1.COMPANY_ID
+        AND
+        l.INVENTORY_ITEM_ID=i.INVENTORY_ITEM_ID
+
+        <include refid="findSql"></include>
+
+       limit #{startPage},#{pageSize}
+    </select>
+
+    <select id="findCount" parameterType="hbi.core.exam.dto.Page" resultType="java.lang.Long">
+        SELECT count(*) FROM
+        hap_om_order_headers h,
+        hap_org_companys c1,
+        hap_ar_customers c2,
+        hap_om_order_lines l,
+        hap_inv_inventory_items i
+        where
+        l.HEADER_ID=h.HEADER_ID
+        AND
+        h.CUSTOMER_ID=c2.CUSTOMER_ID
+        AND
+        c2.COMPANY_ID=c1.COMPANY_ID
+        AND
+        l.INVENTORY_ITEM_ID=i.INVENTORY_ITEM_ID
+        <include refid="findSql"></include>
+    </select>
+</mapper>

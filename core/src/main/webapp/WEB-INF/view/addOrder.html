@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<#include "include/header.html">
+    <body>
+    <br>
+    <div>
+    <div id="block">
+        <div class="col-sm-12">
+            <div class="col-sm-1">订单编号：</div>
+                <div class="col-sm-2">
+                    <input type="text" data-bind="value:data.orderNumber" style="width: 150px"/>
+                </div>
+            <div class="col-sm-1">公司名称：</div>
+            <div class="col-sm-2">
+            <input id="company" data-bind="value:data.companyId"/>
+            </div>
+        <script>
+            $("#company").kendoLov($.extend(${lovProvider.getLov(base.contextPath, base.locale, "hap_company_lov")}
+            ))
+        </script>
+            <div class="col-sm-1">客户名称：</div>
+            <div class="col-sm-2">
+            <input id="customer" data-bind="value:data.customerName"/>
+            </div>
+        <script>
+            $("#customer").kendoLov($.extend(${lovProvider.getLov(base.contextPath,base.locale,"hap_customer_lov")},
+                {
+                    query: function (e)
+                    {
+                        console.log(viewModel.data.companyId);
+                        e.param['companyId'] = viewModel.data.companyId;
+                    }
+                }
+            ));
+        </script>
+        </div>
+        <br><br><br>
+    <div class="col-sm-12">
+        <div class="col-sm-1">订单日期：</div>
+        <div class="col-sm-2">
+        <input id="orderDate" style="width: 150px" name="orderDate" required data-role="订单日期" data-bind="value:data.orderDate"/>
+        <span class="k-invalid-msg" data-for="orderDate"></span>
+         </div>
+        <script type="text/javascript">
+            $(function () {
+                $("#orderDate").kendoDateTimePicker({
+                    format: "yyyy-MM-dd HH:mm:ss",
+                    value: new Date()
+                });
+            });
+        </script>
+        <div class="col-sm-1">总金额:</div>
+            <div class="col-sm-2">
+             <input type="text" style="width: 150px" data-bind="enabled: isEnabled,value:data.totalMoney"/>
+            </div>
+        <div class="col-sm-1">订单状态:</div>
+        <div class="col-sm-1">
+         <input id="combobox" style="width: 80px" name="combobox" VALUE="新建" data-bind="value:data.orderStatus"  />
+        </div>
+    </div>
+    <br><br><br>
+                <div id="toolbarBtn" style="margin-left: 30px">
+                    <input type="button" value="保存" class="btn btn-default k-grid-add" data-bind="click:saveFunction">
+                    <input type="button" value="提交" class="btn btn-default k-grid-save-changes" data-bind="click:submitFunction">
+                    <input type="button" value="审批" class="btn btn-default k-grid-delete" data-bind="click:examineFunction">
+                    <input type="button" value="拒绝" class="btn btn-default k-grid-cancel-changes" data-bind="click:refuseFunction">
+                    <input type="button" value="整行删除" class="btn btn-default k-grid-delete" data-bind="click:deleteFunction">
+                    <input type="button" value="单据打印" class="btn btn-default" data-bind="click:printFunction">
+                    <a href="order.html"><span class="btn btn-default">返回</span></a>
+                </div>
+    </div>
+            <div id="table" style="padding-top: 50px">
+                <ul>
+                    <li class="k-state-active"> 主要 </li>
+                    <li> 其他 </li>
+                </ul>
+                <div>
+                    <div id="grid1"  class="table"></div>
+                </div>
+                <script>
+                    $(document).ready(function() {
+                        $("#table").kendoTabStrip({
+                            animation:  {
+                                open: {
+                                    effects: "fadeIn"
+                                }
+                            }
+                        });
+                    });
+                </script>
+
+                <div>
+                    <div id="grid2"  class="table"></div>
+                </div>
+            </div>
+
+    </div>
+        <script>
+            $(function () {
+                var searchStr=location.search.substr(9);
+
+
+            })
+            var viewModel = kendo.observable({
+                data: {
+                },
+                saveFunction: function () {
+                    $('#grid1').data('kendoGrid').saveChanges();
+                },
+                submitFunction: function () {
+                    $('#grid1').data('kendoGrid').dataSource.page(1);
+                },
+            });
+            kendo.bind($('#block'), viewModel);
+
+                var dataSource = new kendo.data.DataSource({
+                    transport:{
+                        read:{
+                            url:"selectOrderDetail",
+                            dataType:"json",
+                            type:"POST"
+                        },
+                        create:{
+                            url:"insert",
+                            type:"POST",
+                            contentType:"application/json",
+                            dataType:"POST"
+                        },
+                        update:{
+                            url:"update",
+                            type:"POST",
+                            dataType:"POST"
+                        },
+                        destroy:{
+                            url:"delete",
+                            type:"POST",
+                            dataType:"POST"
+                        },
+                        parameterMap : function(options,type) {
+                            if (type == "read") {
+                                console.log("11111111111")
+                                console.log(viewModel.data);
+                                return Hap.prepareQueryParameter(viewModel.data.toJSON(), options);
+                            } else {
+                                console.log("2222222");
+                               return JSON.stringify(Hap.prepareQueryParameter(viewModel.data.toJSON(), options));
+                            }
+                        }
+                    },
+                    pageSize:5,
+                    serverPaging:true,
+                    serverSorting:true,
+                    serverFiltering:true,
+                    schema:{
+                     data:"rows",
+                     total: 'total',
+                        model:{
+                            id:"lineId"
+                        }
+                    }
+                });//数据源
+
+                $("#grid1").kendoGrid({
+                    toolbar: [{
+                        name: "create",
+                        template: '<span class="btn btn-default k-grid-add">#=text#</span>'
+                    },{
+                        name: "save",
+                        template: '<span class="btn btn-default k-grid-save-changes">#=text#</span>'
+                    },{
+                        template: '<span id="delete" class="btn btn-default">删除</span>'
+                    }],
+                    dataSource:dataSource,
+                    pageable:{
+                        pageSizes: ['All', 5, 10, 20, 50],
+                        refresh: true,
+                        buttonCount: 5
+                    },
+                    rownumber: true,
+                    editable:true,
+                    selectable : 'multiple, rowbox',
+                    height:250,
+                    columns:[
+                        {
+                            field:"lineNumber",
+                            attributes:{style:"text-align:center"},
+                            editable:false ,
+                            title:"行号",
+                            width:30
+                        },
+                        {
+                            field:"itemCode",
+                            attributes:{style:"text-align:center"},
+                            title:"物料编码",
+                            editable:true,
+                            width:80
+                        },{
+                            field:"itemDescription",
+                            attributes: {style: "text-align:center"},
+                            title:"物料描述",
+                            editable:false,
+                            width:100
+                        },{
+                            field:"orderQuantityUom",
+                            attributes: {style: "text-align:center"},
+                            title:"产品单位",
+                            editable:false,
+                            width:50
+                        },{
+                            field:"orderQuantity",
+                            attributes: {style: "text-align:center"},
+                            title:"数量",
+                            editable:true,
+                            width:50
+                        },{
+                            field:"unitSellingPrice",
+                            attributes: {style: "text-align:center"},
+                            title:"产品单价",
+                            editable:true,
+                            width:50
+                        },{
+                            field:"orderMoney",
+                            attributes: {style: "text-align:center"},
+                            title:"金额",
+                            editable:true,
+                            width:50
+                        },{
+                            field:"description",
+                            attributes: {style: "text-align:center"},
+                            title:"备注",
+                            editable:true,
+                            width:100
+                        }]
+                });
+
+                $("#grid2").kendoGrid({
+                    dataSource:dataSource,
+                    pageable:{
+                        pageSizes: ['All', 5, 10, 20, 50],
+                        refresh: true,
+                        buttonCount: 5
+                    },
+                    editable:true,
+                    selectable : 'multiple, rowbox',
+                    height:300,
+                    toolbar: [{
+                        name: "create",
+                        template: '<span class="btn btn-default k-grid-add">#=text#</span>'
+                    },{
+                        name: "save",
+                        template: '<span class="btn btn-default k-grid-save-changes">#=text#</span>'
+                    },{
+                        template: '<span id="delete" class="btn btn-default">删除</span>'
+                    }],
+                    columns:[
+                        {
+                            field:"lineNumber",
+                            attributes:{style:"text-align:center"},
+                            title:"行号",
+                            width:30
+                        },
+                        {
+                     field:"addition1",
+                            attributes:{style:"text-align:center"},
+                            title:"附件信息1",
+                            editable:false,
+                            width:60          //列宽
+                        },{
+                       field:"addition2",
+                            attributes: {style: "text-align:center"},
+                            title:"附件信息2",
+                            width:60
+                        },{
+                     field:"addition3",
+                            attributes: {style: "text-align:center"},
+                            title:"附件信息3",
+                       editable:false,
+                            width:60
+                        },{
+                       field:"addition4",
+                            attributes: {style: "text-align:center"},
+                            title:"附件信息4",
+                            width:60
+                        },
+                        {
+                     field:"addition5",
+                            attributes: {style: "text-align:center"},
+                            title:"附件信息5",
+                            width:60
+                        }]
+                })
+                //自动根据当前屏幕大小调整表格
+                Hap.autoResizeGrid("#grid1");
+        </script>
+    </body>
+</html>
